@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>내 영화 티어리스트</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -12,11 +13,11 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
+      background-color: #f4f4f4;
       color: #222;
     }
 
-    .app {
+    .wrap {
       width: 100%;
       max-width: 1100px;
       margin: 0 auto;
@@ -24,118 +25,120 @@
     }
 
     h1 {
-      margin-top: 0;
       text-align: center;
+      margin-bottom: 20px;
     }
 
-    .controls {
+    .input-area {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 15px;
       flex-wrap: wrap;
     }
 
-    input {
+    #movieInput {
       flex: 1;
-      min-width: 180px;
-      padding: 10px;
+      min-width: 200px;
+      padding: 12px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #bbb;
       border-radius: 8px;
     }
 
     button {
-      padding: 10px 14px;
+      padding: 12px 16px;
       font-size: 15px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      background: #333;
+      background-color: #333;
       color: white;
     }
 
     button:hover {
-      background: #555;
+      background-color: #555;
     }
 
-    .reset-btn {
-      background: #777;
+    #resetBtn {
+      background-color: #777;
     }
 
-    .reset-btn:hover {
-      background: #999;
+    #resetBtn:hover {
+      background-color: #999;
     }
 
-    .hint {
-      margin: 8px 0 18px;
+    .guide {
+      margin-bottom: 20px;
       color: #555;
-      font-size: 14px;
       line-height: 1.5;
     }
 
-    .tiers {
-      display: grid;
-      gap: 12px;
-      margin-bottom: 20px;
+    .tier-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
     }
 
-    .tier {
-      display: grid;
-      grid-template-columns: 90px 1fr;
-      min-height: 90px;
-      background: white;
+    .tier-row {
+      display: flex;
+      min-height: 95px;
+      background-color: white;
+      border: 1px solid #ddd;
       border-radius: 10px;
       overflow: hidden;
-      border: 1px solid #ddd;
     }
 
     .tier-label {
+      width: 90px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
+      font-size: 32px;
       font-weight: bold;
+      color: white;
       cursor: pointer;
       user-select: none;
-      color: white;
     }
 
     .tier-label.s {
-      background: #ff6b6b;
+      background-color: #ff5c5c;
     }
 
     .tier-label.a {
-      background: #ffa94d;
+      background-color: #ff9f43;
     }
 
     .tier-label.b {
-      background: #ffd43b;
-      color: #333;
+      background-color: #feca57;
+      color: #222;
     }
 
     .tier-label.c {
-      background: #69db7c;
-      color: #333;
+      background-color: #1dd1a1;
+      color: #222;
     }
 
-    .card-area {
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      padding: 10px;
-      flex-wrap: wrap;
+    .card-zone {
+      flex: 1;
       min-width: 0;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-content: flex-start;
     }
 
-    .unranked-section {
-      background: white;
+    .unranked-box {
+      background-color: white;
       border: 1px solid #ddd;
       border-radius: 10px;
-      padding: 12px;
+      padding: 15px;
     }
 
-    .unranked-title {
-      margin: 0 0 10px;
+    .unranked-box h2 {
+      margin: 0 0 12px;
       font-size: 20px;
     }
 
@@ -145,12 +148,11 @@
       gap: 8px;
       max-width: 100%;
       padding: 9px 10px;
-      background: #ffffff;
       border: 2px solid #ccc;
       border-radius: 10px;
+      background-color: white;
       cursor: grab;
-      word-break: break-word;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
     }
 
     .movie-card:active {
@@ -158,13 +160,13 @@
     }
 
     .movie-card.selected {
-      border-color: #228be6;
-      background: #e7f5ff;
+      border-color: #1e90ff;
+      background-color: #eaf4ff;
     }
 
     .movie-title {
-      min-width: 0;
       overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .delete-btn {
@@ -172,90 +174,91 @@
       padding: 5px 8px;
       font-size: 13px;
       border-radius: 6px;
-      background: #e03131;
+      background-color: #e74c3c;
       color: white;
     }
 
     .delete-btn:hover {
-      background: #c92a2a;
+      background-color: #c0392b;
     }
 
-    .drop-over {
-      outline: 3px dashed #228be6;
+    .drag-over {
+      outline: 3px dashed #1e90ff;
       outline-offset: -6px;
     }
 
     @media (max-width: 600px) {
-      .app {
+      .wrap {
         padding: 12px;
       }
 
-      .tier {
-        grid-template-columns: 1fr;
-      }
-
-      .tier-label {
-        min-height: 54px;
-      }
-
-      .controls {
+      .tier-row {
         flex-direction: column;
       }
 
-      input,
+      .tier-label {
+        width: 100%;
+        height: 55px;
+      }
+
+      .input-area {
+        flex-direction: column;
+      }
+
+      #movieInput,
       button {
         width: 100%;
       }
     }
   </style>
 </head>
+
 <body>
-  <main class="app">
+  <div class="wrap">
     <h1>내 영화 티어리스트</h1>
 
-    <section class="controls">
+    <div class="input-area">
       <input id="movieInput" type="text" placeholder="영화 제목 입력" />
       <button id="addBtn">추가</button>
-      <button id="resetBtn" class="reset-btn">처음으로</button>
-    </section>
+      <button id="resetBtn">처음으로</button>
+    </div>
 
-    <p class="hint">
-      카드 선택 후 S·A·B·C 글자를 누르거나, 카드를 원하는 칸으로 끌어 놓으세요.
-      삭제 버튼을 누르면 확인 후 카드가 삭제됩니다.
+    <p class="guide">
+      카드를 누르고 S·A·B·C 등급 글자를 누르거나, 카드를 끌어 놓으면 해당 칸으로 옮겨집니다.
     </p>
 
-    <section class="tiers">
-      <div class="tier" data-tier="S">
-        <div class="tier-label s" data-move-tier="S">S</div>
-        <div class="card-area" id="tier-S" data-drop-tier="S"></div>
+    <div class="tier-list">
+      <div class="tier-row">
+        <div class="tier-label s" data-tier-label="S">S</div>
+        <div class="card-zone" data-tier="S"></div>
       </div>
 
-      <div class="tier" data-tier="A">
-        <div class="tier-label a" data-move-tier="A">A</div>
-        <div class="card-area" id="tier-A" data-drop-tier="A"></div>
+      <div class="tier-row">
+        <div class="tier-label a" data-tier-label="A">A</div>
+        <div class="card-zone" data-tier="A"></div>
       </div>
 
-      <div class="tier" data-tier="B">
-        <div class="tier-label b" data-move-tier="B">B</div>
-        <div class="card-area" id="tier-B" data-drop-tier="B"></div>
+      <div class="tier-row">
+        <div class="tier-label b" data-tier-label="B">B</div>
+        <div class="card-zone" data-tier="B"></div>
       </div>
 
-      <div class="tier" data-tier="C">
-        <div class="tier-label c" data-move-tier="C">C</div>
-        <div class="card-area" id="tier-C" data-drop-tier="C"></div>
+      <div class="tier-row">
+        <div class="tier-label c" data-tier-label="C">C</div>
+        <div class="card-zone" data-tier="C"></div>
       </div>
-    </section>
+    </div>
 
-    <section class="unranked-section">
-      <h2 class="unranked-title">아직 안 정한 영화</h2>
-      <div class="card-area" id="tier-unranked" data-drop-tier=""></div>
-    </section>
-  </main>
+    <div class="unranked-box">
+      <h2>아직 안 정한 영화</h2>
+      <div class="card-zone" data-tier="none"></div>
+    </div>
+  </div>
 
   <script>
-    const STORAGE_KEY = "my-movie-tier-list-v1";
+    const STORAGE_KEY = "movie-tier-list-delete-version";
 
-    const initialMovies = [
+    const initialMovieTitles = [
       "기생충",
       "인터스텔라",
       "라라랜드",
@@ -267,108 +270,127 @@
     ];
 
     let movies = [];
-    let selectedId = null;
+    let selectedMovieId = null;
 
     const movieInput = document.getElementById("movieInput");
     const addBtn = document.getElementById("addBtn");
     const resetBtn = document.getElementById("resetBtn");
 
-    function makeInitialMovies() {
-      return initialMovies.map((title, index) => ({
-        id: "initial-" + index,
-        title,
-        tier: ""
-      }));
-    }
-
-    function loadMovies() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-
-      if (saved) {
-        try {
-          movies = JSON.parse(saved);
-          return;
-        } catch (error) {
-          movies = makeInitialMovies();
-        }
-      } else {
-        movies = makeInitialMovies();
-      }
+    function createInitialMovies() {
+      return initialMovieTitles.map(function(title, index) {
+        return {
+          id: "initial-" + index,
+          title: title,
+          tier: "none"
+        };
+      });
     }
 
     function saveMovies() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
     }
 
-    function render() {
-      const containers = document.querySelectorAll("[data-drop-tier]");
-      containers.forEach(container => {
-        container.innerHTML = "";
+    function loadMovies() {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+
+      if (!savedData) {
+        movies = createInitialMovies();
+        saveMovies();
+        return;
+      }
+
+      try {
+        const parsedData = JSON.parse(savedData);
+
+        if (Array.isArray(parsedData)) {
+          movies = parsedData;
+        } else {
+          movies = createInitialMovies();
+          saveMovies();
+        }
+      } catch (error) {
+        movies = createInitialMovies();
+        saveMovies();
+      }
+    }
+
+    function renderMovies() {
+      const zones = document.querySelectorAll(".card-zone");
+
+      zones.forEach(function(zone) {
+        zone.innerHTML = "";
       });
 
-      movies.forEach(movie => {
-        const containerId = movie.tier ? "tier-" + movie.tier : "tier-unranked";
-        const container = document.getElementById(containerId);
+      movies.forEach(function(movie) {
+        const targetZone = document.querySelector('.card-zone[data-tier="' + movie.tier + '"]');
 
-        if (!container) return;
+        if (!targetZone) return;
 
         const card = document.createElement("div");
         card.className = "movie-card";
         card.draggable = true;
         card.dataset.id = movie.id;
 
-        if (movie.id === selectedId) {
+        if (movie.id === selectedMovieId) {
           card.classList.add("selected");
         }
 
-        const title = document.createElement("span");
-        title.className = "movie-title";
-        title.textContent = movie.title;
+        const titleSpan = document.createElement("span");
+        titleSpan.className = "movie-title";
+        titleSpan.textContent = movie.title;
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-btn";
-        deleteBtn.type = "button";
-        deleteBtn.textContent = "삭제";
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-btn";
+        deleteButton.type = "button";
+        deleteButton.textContent = "삭제";
 
-        card.appendChild(title);
-        card.appendChild(deleteBtn);
+        card.appendChild(titleSpan);
+        card.appendChild(deleteButton);
 
-        card.addEventListener("click", () => {
-          selectedId = movie.id;
-          render();
+        card.addEventListener("click", function() {
+          selectedMovieId = movie.id;
+          renderMovies();
         });
 
-        card.addEventListener("dragstart", event => {
+        card.addEventListener("dragstart", function(event) {
           event.dataTransfer.setData("text/plain", movie.id);
         });
 
-        deleteBtn.addEventListener("click", event => {
+        deleteButton.addEventListener("click", function(event) {
           event.stopPropagation();
 
-          const ok = confirm("삭제하시겠습니까?");
-          if (!ok) return;
+          const result = confirm("삭제하시겠습니까?");
 
-          movies = movies.filter(item => item.id !== movie.id);
+          if (!result) {
+            return;
+          }
 
-          if (selectedId === movie.id) {
-            selectedId = null;
+          movies = movies.filter(function(item) {
+            return item.id !== movie.id;
+          });
+
+          if (selectedMovieId === movie.id) {
+            selectedMovieId = null;
           }
 
           saveMovies();
-          render();
+          renderMovies();
         });
 
-        container.appendChild(card);
+        targetZone.appendChild(card);
       });
     }
 
-    function moveMovie(movieId, tier) {
-      const movie = movies.find(item => item.id === movieId);
+    function moveMovie(movieId, newTier) {
+      const movie = movies.find(function(item) {
+        return item.id === movieId;
+      });
+
       if (!movie) return;
 
-      movie.tier = tier;
+      movie.tier = newTier;
       saveMovies();
-      render();
+      renderMovies();
     }
 
     function addMovie() {
@@ -378,64 +400,72 @@
         return;
       }
 
-      movies.push({
-        id: "movie-" + Date.now() + "-" + Math.random().toString(36).slice(2),
-        title,
-        tier: ""
-      });
+      const newMovie = {
+        id: "movie-" + Date.now(),
+        title: title,
+        tier: "none"
+      };
 
+      movies.push(newMovie);
       movieInput.value = "";
+
       saveMovies();
-      render();
+      renderMovies();
     }
 
     addBtn.addEventListener("click", addMovie);
 
-    movieInput.addEventListener("keydown", event => {
+    movieInput.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         addMovie();
       }
     });
 
-    resetBtn.addEventListener("click", () => {
-      movies = makeInitialMovies();
-      selectedId = null;
+    resetBtn.addEventListener("click", function() {
+      movies = createInitialMovies();
+      selectedMovieId = null;
       saveMovies();
-      render();
+      renderMovies();
     });
 
-    document.querySelectorAll("[data-move-tier]").forEach(label => {
-      label.addEventListener("click", () => {
-        if (!selectedId) return;
+    const tierLabels = document.querySelectorAll("[data-tier-label]");
 
-        const tier = label.dataset.moveTier;
-        moveMovie(selectedId, tier);
+    tierLabels.forEach(function(label) {
+      label.addEventListener("click", function() {
+        if (!selectedMovieId) {
+          return;
+        }
+
+        const tier = label.dataset.tierLabel;
+        moveMovie(selectedMovieId, tier);
       });
     });
 
-    document.querySelectorAll("[data-drop-tier]").forEach(area => {
-      area.addEventListener("dragover", event => {
+    const cardZones = document.querySelectorAll(".card-zone");
+
+    cardZones.forEach(function(zone) {
+      zone.addEventListener("dragover", function(event) {
         event.preventDefault();
-        area.classList.add("drop-over");
+        zone.classList.add("drag-over");
       });
 
-      area.addEventListener("dragleave", () => {
-        area.classList.remove("drop-over");
+      zone.addEventListener("dragleave", function() {
+        zone.classList.remove("drag-over");
       });
 
-      area.addEventListener("drop", event => {
+      zone.addEventListener("drop", function(event) {
         event.preventDefault();
-        area.classList.remove("drop-over");
+        zone.classList.remove("drag-over");
 
         const movieId = event.dataTransfer.getData("text/plain");
-        const tier = area.dataset.dropTier;
+        const newTier = zone.dataset.tier;
 
-        moveMovie(movieId, tier);
+        moveMovie(movieId, newTier);
       });
     });
 
     loadMovies();
-    render();
+    renderMovies();
   </script>
 </body>
 </html>
