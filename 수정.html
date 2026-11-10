@@ -7,7 +7,7 @@
   <style>
     :root { --paper:#faf8f3; --ink:#242922; --muted:#5f685d; --line:#d9dad1; --green:#276453; --sage:#e3eee7; --peach:#f2e6dc; }
     * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:var(--paper); font-family:system-ui,-apple-system,sans-serif; line-height:1.6;  }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:system-ui,-apple-system,sans-serif; line-height:1.6; }
     main { width:min(100% - 32px,860px); margin:32px auto 48px; }
     header { display:flex; align-items:start; justify-content:space-between; gap:20px; flex-wrap:wrap; }
     h1 { margin:0; font-size:clamp(26px,5vw,34px); line-height:1.25; letter-spacing:-.03em; }
@@ -27,61 +27,15 @@
     .pool { margin-top:22px; }
     .pool-head { margin:0 0 8px; border:0; padding:0; background:transparent; color:var(--muted); font-size:17px; font-weight:700; text-align:left; }
     #pool { border:1.5px dashed var(--line); border-radius:14px; background:#fff; }
-
-    .card-wrap {
-      position:relative;
-      width:98px;
-      min-height:62px;
-    }
-
-    .card {
-      width:100%;
-      min-height:62px;
-      height:100%;
-      padding:8px;
-      border:1px solid transparent;
-      border-radius:10px;
-      font-size:14px;
-      font-weight:650;
-      line-height:1.35;
-      overflow-wrap:anywhere;
-      color:var(--ink);
-      cursor:grab;
-      text-align:left;
-    }
-
+    .card { position:relative; width:98px; min-height:62px; padding:18px 8px 8px 8px; border:1px solid transparent; border-radius:10px; font-size:14px; font-weight:650; line-height:1.35; overflow-wrap:anywhere; color:var(--ink); cursor:grab; text-align:center; }
     .card[aria-pressed="true"] { outline:3px solid var(--green); outline-offset:2px; }
-
-    .delete-card {
-      position:absolute;
-      top:3px;
-      right:3px;
-      width:17px;
-      height:17px;
-      padding:0;
-      border:0;
-      border-radius:50%;
-      background:rgba(36,41,34,.72);
-      color:#fff;
-      font-size:13px;
-      font-weight:800;
-      line-height:17px;
-      text-align:center;
-      cursor:pointer;
-    }
-
-    .delete-card:hover {
-      background:#a55239;
-    }
-
+    .card-title { pointer-events:none; }
+    .card-delete { position:absolute; top:3px; right:3px; width:18px; height:18px; border:0; background:rgba(0,0,0,0.08); border-radius:50%; font-size:11px; line-height:1; padding:0; display:flex; align-items:center; justify-content:center; color:var(--muted); cursor:pointer; }
+    .card-delete:hover { background:rgba(0,0,0,0.2); color:var(--ink); }
     .count { display:block; font-size:14px; font-weight:600; }
     .note { font-size:13px; color:var(--muted); margin-top:18px; }
     :focus-visible { outline:3px solid #ba613a; outline-offset:3px; }
-    @media(max-width:420px) {
-      .label { width:48px; }
-      .card-wrap { width:90px; }
-      .drop { padding:10px; gap:8px; }
-    }
+    @media(max-width:420px) { .label { width:48px; } .card { width:90px; } .drop { padding:10px; gap:8px; } }
   </style>
 </head>
 <body>
@@ -124,55 +78,63 @@
       item.tier = tier; selected = null; save(); render();
       showMessage((item.title || '영화') + '를 옮겼어요.');
     }
-
     function removeMovie(id) {
-      const item = state.items.find(item => item.id === id);
-      if (!item) return;
-
-      const ok = confirm("삭제하시겠습니까?");
-      if (!ok) return;
-
-      state.items = state.items.filter(item => item.id !== id);
-
-      if (selected === id) {
-        selected = null;
-      }
-
+      const confirmed = window.confirm("삭제하시겠습니까?");
+      if (!confirmed) return;
+      const targetIndex = state.items.findIndex(item => item.id === id);
+      if (targetIndex === -1) return;
+      const [removed] = state.items.splice(targetIndex, 1);
+      if (selected === id) selected = null;
       save();
       render();
-      showMessage((item.title || '영화') + '를 삭제했어요.');
+      showMessage((removed.title || '영화') + '를 삭제했어요.');
     }
-
     function card(item,index) {
-      const wrap = document.createElement('div');
-      wrap.className = 'card-wrap';
-
-      const element = document.createElement('button');
-      element.type = 'button'; element.className = 'card'; element.draggable = true;
-      element.textContent = item.title || ' '; element.dataset.id = item.id;
+      const element = document.createElement('div');
+      element.className = 'card';
+      element.draggable = true;
+      element.setAttribute('role', 'button');
+      element.setAttribute('tabindex', '0');
+      element.dataset.id = item.id;
       element.style.backgroundColor = COLORS[index % COLORS.length];
-      element.setAttribute('aria-label',item.title || '영화 카드');
-      element.setAttribute('aria-pressed',String(selected === item.id));
-      element.addEventListener('click',event => {
-        event.stopPropagation(); selected = selected === item.id ? null : item.id; render();
-        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
-      });
-      element.addEventListener('dragstart',event => { event.dataTransfer.setData('text/plain',item.id); });
+      element.setAttribute('aria-label', item.title || '영화 카드');
+      element.setAttribute('aria-pressed', String(selected === item.id));
 
-      const deleteButton = document.createElement('button');
-      deleteButton.type = 'button';
-      deleteButton.className = 'delete-card';
-      deleteButton.textContent = '×';
-      deleteButton.setAttribute('aria-label', (item.title || '영화') + ' 삭제');
-      deleteButton.addEventListener('click', event => {
+      const titleSpan = document.createElement('span');
+      titleSpan.className = 'card-title';
+      titleSpan.textContent = item.title || ' ';
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'card-delete';
+      delBtn.textContent = '✕';
+      delBtn.setAttribute('aria-label', (item.title || '영화') + ' 삭제');
+      delBtn.addEventListener('click', event => {
         event.stopPropagation();
         removeMovie(item.id);
       });
 
-      wrap.append(element, deleteButton);
-      return wrap;
-    }
+      element.append(delBtn, titleSpan);
 
+      element.addEventListener('click', event => {
+        event.stopPropagation();
+        selected = selected === item.id ? null : item.id;
+        render();
+        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+      });
+      element.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selected = selected === item.id ? null : item.id;
+          render();
+          showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+        }
+      });
+      element.addEventListener('dragstart', event => {
+        event.dataTransfer.setData('text/plain', item.id);
+      });
+      return element;
+    }
     function wireDrop(element,tier) {
       element.addEventListener('dragover',event => { event.preventDefault(); element.closest('.row')?.classList.add('over'); });
       element.addEventListener('dragleave',() => element.closest('.row')?.classList.remove('over'));
@@ -193,7 +155,6 @@
       }
       const pool = document.querySelector('#pool'); pool.replaceChildren();
       state.items.forEach((item,index) => { if (item.tier === 'pool') pool.append(card(item,index)); });
-      
     }
     wireDrop(document.querySelector('#pool'),'pool');
     document.querySelector('#pool-label').addEventListener('click',() => { if (selected) move(selected,'pool'); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
