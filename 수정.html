@@ -27,10 +27,42 @@
     .pool { margin-top:22px; }
     .pool-head { margin:0 0 8px; border:0; padding:0; background:transparent; color:var(--muted); font-size:17px; font-weight:700; text-align:left; }
     #pool { border:1.5px dashed var(--line); border-radius:14px; background:#fff; }
-    .card { position:relative; width:98px; min-height:62px; padding:8px 20px 8px 8px; border:1px solid transparent; border-radius:10px; font-size:14px; font-weight:650; line-height:1.35; overflow-wrap:anywhere; color:var(--ink); cursor:grab; }
+
+    .card {
+      position:relative;
+      width:98px;
+      min-height:62px;
+      padding:8px 28px 8px 8px;
+      border:1px solid transparent;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:650;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+      color:var(--ink);
+      cursor:grab;
+      text-align:left;
+    }
     .card[aria-pressed="true"] { outline:3px solid var(--green); outline-offset:2px; }
-    .card .del { position:absolute; top:3px; right:3px; width:18px; height:18px; padding:0; display:flex; align-items:center; justify-content:center; border:0; border-radius:50%; background:rgba(0,0,0,.12); color:var(--ink); font-size:13px; font-weight:700; line-height:1; cursor:pointer; }
-    .card .del:hover { background:rgba(165,82,57,.85); color:#fff; }
+    .card-title { display:block; }
+    .delete {
+      position:absolute;
+      top:5px;
+      right:5px;
+      width:22px;
+      height:22px;
+      border:0;
+      border-radius:999px;
+      background:rgba(255,255,255,.78);
+      color:var(--muted);
+      font-size:16px;
+      font-weight:800;
+      line-height:1;
+      padding:0;
+      cursor:pointer;
+    }
+    .delete:hover { background:#fff; color:#a55239; }
+
     .count { display:block; font-size:14px; font-weight:600; }
     .note { font-size:13px; color:var(--muted); margin-top:18px; }
     :focus-visible { outline:3px solid #ba613a; outline-offset:3px; }
@@ -39,93 +71,265 @@
 </head>
 <body>
   <main>
-    <header><div><h1>내 영화 티어리스트</h1><p class="sub">영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요. 카드를 끌어서 놓아도 됩니다. 카드의 ×를 누르면 삭제됩니다.</p></div></header>
+    <header>
+      <div>
+        <h1>내 영화 티어리스트</h1>
+        <p class="sub">영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요. 카드를 끌어서 놓아도 됩니다. 카드의 × 버튼으로 삭제할 수 있습니다.</p>
+      </div>
+    </header>
+
     <form class="tools" id="add-form">
       <input id="title" aria-label="영화 제목" placeholder="영화 제목 추가" maxlength="80">
       <button type="submit">추가</button>
       <button type="button" class="reset" id="reset">처음으로</button>
     </form>
+
     <p id="message" role="status">영화를 선택해 S·A·B·C로 나누어 보세요.</p>
+
     <section class="tiers" id="tiers" aria-label="영화 등급"></section>
+
     <section class="pool" aria-label="아직 안 정한 영화">
       <button class="pool-head" id="pool-label" type="button" aria-label="미분류로 옮기기">아직 안 정한 영화</button>
       <div class="drop" id="pool" data-tier="pool"></div>
     </section>
+
     <p class="note">같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다. 다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.</p>
   </main>
+
   <script>
     const KEY = "codyssey-activity-04-v2";
     const LEVELS = ['S', 'A', 'B', 'C', 'pool'];
     const TITLES = ["기생충","인터스텔라","라라랜드","센과 치히로의 행방불명","어벤져스: 엔드게임","범죄도시","타이타닉","토이 스토리"];
     const COLORS = ["#f2e6dc","#e3eee7","#ede7f6","#fcefd9","#e2ecf4","#f6e3e3"];
-    const initial = () => ({ nextId: TITLES.length + 1, items: TITLES.map((title,index) => ({ id: 'm' + (index + 1), title, tier: 'pool' })) });
+
+    const initial = () => ({
+      nextId: TITLES.length + 1,
+      items: TITLES.map((title,index) => ({
+        id: 'm' + (index + 1),
+        title,
+        tier: 'pool'
+      }))
+    });
+
     let state = initial();
     let selected = null;
+
     try {
       const stored = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (stored && Number.isSafeInteger(stored.nextId) && Array.isArray(stored.items)
-          && stored.items.every(item => typeof item.id === 'string' && typeof item.title === 'string' && LEVELS.includes(item.tier))) state = stored;
+      if (
+        stored &&
+        Number.isSafeInteger(stored.nextId) &&
+        Array.isArray(stored.items) &&
+        stored.items.every(item =>
+          typeof item.id === 'string' &&
+          typeof item.title === 'string' &&
+          LEVELS.includes(item.tier)
+        )
+      ) {
+        state = stored;
+      }
     } catch {}
-    function showMessage(message) { document.querySelector('#message').textContent = message; }
-    function save() {
-      try { localStorage.setItem(KEY, JSON.stringify(state)); }
-      catch { showMessage('이 브라우저에서는 저장하지 못했어요. 현재 화면에서 확인한 내용과 다시 열어 확인한 내용을 구분해 주세요.'); }
+
+    function showMessage(message) {
+      document.querySelector('#message').textContent = message;
     }
+
+    function save() {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      } catch {
+        showMessage('이 브라우저에서는 저장하지 못했어요. 현재 화면에서 확인한 내용과 다시 열어 확인한 내용을 구분해 주세요.');
+      }
+    }
+
     function move(id,tier) {
       const item = state.items.find(item => item.id === id);
       if (!item || !LEVELS.includes(tier)) return;
-      item.tier = tier; selected = null; save(); render();
+
+      item.tier = tier;
+      selected = null;
+      save();
+      render();
       showMessage((item.title || '영화') + '를 옮겼어요.');
     }
-    function remove(id) {
+
+    function removeItem(id) {
       const item = state.items.find(item => item.id === id);
       if (!item) return;
-      state.items = state.items.filter(value => value.id !== id);
+
+      state.items = state.items.filter(item => item.id !== id);
       if (selected === id) selected = null;
-      save(); render();
+
+      save();
+      render();
       showMessage((item.title || '영화') + '를 삭제했어요.');
     }
+
+    function toggleSelect(item) {
+      selected = selected === item.id ? null : item.id;
+      render();
+      showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+    }
+
     function card(item,index) {
-      const element = document.createElement('button');
-      element.type = 'button'; element.className = 'card'; element.draggable = true;
-      element.textContent = item.title || ' '; element.dataset.id = item.id;
+      const element = document.createElement('div');
+      element.className = 'card';
+      element.draggable = true;
+      element.tabIndex = 0;
+      element.dataset.id = item.id;
       element.style.backgroundColor = COLORS[index % COLORS.length];
+      element.setAttribute('role','button');
       element.setAttribute('aria-label',item.title || '영화 카드');
       element.setAttribute('aria-pressed',String(selected === item.id));
+
+      const title = document.createElement('span');
+      title.className = 'card-title';
+      title.textContent = item.title || ' ';
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'delete';
+      deleteButton.textContent = '×';
+      deleteButton.setAttribute('aria-label',(item.title || '영화') + ' 삭제');
+
+      element.append(title, deleteButton);
+
       element.addEventListener('click',event => {
-        event.stopPropagation(); selected = selected === item.id ? null : item.id; render();
-        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+        event.stopPropagation();
+        toggleSelect(item);
       });
-      element.addEventListener('dragstart',event => { event.dataTransfer.setData('text/plain',item.id); });
-      const del = document.createElement('span');
-      del.className = 'del'; del.textContent = '×'; del.setAttribute('role','button'); del.tabIndex = 0;
-      del.setAttribute('aria-label',(item.title || '영화') + ' 삭제');
-      del.addEventListener('click',event => { event.stopPropagation(); remove(item.id); });
-      del.addEventListener('keydown',event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); remove(item.id); } });
-      del.draggable = false;
-      element.append(del);
+
+      element.addEventListener('keydown',event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleSelect(item);
+        }
+      });
+
+      element.addEventListener('dragstart',event => {
+        event.dataTransfer.setData('text/plain',item.id);
+      });
+
+      deleteButton.addEventListener('pointerdown',event => {
+        event.stopPropagation();
+      });
+
+      deleteButton.addEventListener('click',event => {
+        event.stopPropagation();
+        removeItem(item.id);
+      });
+
       return element;
     }
+
     function wireDrop(element,tier) {
-      element.addEventListener('dragover',event => { event.preventDefault(); element.closest('.row')?.classList.add('over'); });
-      element.addEventListener('dragleave',() => element.closest('.row')?.classList.remove('over'));
-      element.addEventListener('drop',event => { event.preventDefault(); move(event.dataTransfer.getData('text/plain'),tier); });
-      element.onclick = () => { if (selected) move(selected,tier); };
+      element.addEventListener('dragover',event => {
+        event.preventDefault();
+        element.closest('.row')?.classList.add('over');
+      });
+
+      element.addEventListener('dragleave',() => {
+        element.closest('.row')?.classList.remove('over');
+      });
+
+      element.addEventListener('drop',event => {
+        event.preventDefault();
+        element.closest('.row')?.classList.remove('over');
+        move(event.dataTransfer.getData('text/plain'),tier);
+      });
+
+      element.onclick = () => {
+        if (selected) move(selected,tier);
+      };
     }
+
     function render() {
-      const tiers = document.querySelector('#tiers'); tiers.replaceChildren();
+      const tiers = document.querySelector('#tiers');
+      tiers.replaceChildren();
+
       for (const tier of LEVELS.filter(value => value !== 'pool')) {
-        const row = document.createElement('div'); row.className = 'row ' + tier;
-        const label = document.createElement('button'); label.type = 'button'; label.className = 'label';
-        label.textContent = tier; label.setAttribute('aria-label',tier + '등급으로 옮기기');
-        label.addEventListener('click',() => { if (selected) move(selected,tier); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
-        
-        const drop = document.createElement('div'); drop.className = 'drop'; drop.dataset.tier = tier;
-        state.items.forEach((item,index) => { if (item.tier === tier) drop.append(card(item,index)); });
-        wireDrop(drop,tier); row.append(label,drop); tiers.append(row);
+        const row = document.createElement('div');
+        row.className = 'row ' + tier;
+
+        const label = document.createElement('button');
+        label.type = 'button';
+        label.className = 'label';
+        label.textContent = tier;
+        label.setAttribute('aria-label',tier + '등급으로 옮기기');
+
+        label.addEventListener('click',() => {
+          if (selected) move(selected,tier);
+          else showMessage('먼저 영화 카드를 선택해 주세요.');
+        });
+
+        const drop = document.createElement('div');
+        drop.className = 'drop';
+        drop.dataset.tier = tier;
+
+        state.items.forEach((item,index) => {
+          if (item.tier === tier) drop.append(card(item,index));
+        });
+
+        wireDrop(drop,tier);
+        row.append(label,drop);
+        tiers.append(row);
       }
-      const pool = document.querySelector('#pool'); pool.replaceChildren();
-      state.items.forEach((item,index) => { if (item.tier === 'pool') pool.append(card(item,index)); });
-      
+
+      const pool = document.querySelector('#pool');
+      pool.replaceChildren();
+
+      state.items.forEach((item,index) => {
+        if (item.tier === 'pool') pool.append(card(item,index));
+      });
     }
-    wireDrop(
+
+    wireDrop(document.querySelector('#pool'),'pool');
+
+    document.querySelector('#pool-label').addEventListener('click',() => {
+      if (selected) move(selected,'pool');
+      else showMessage('먼저 영화 카드를 선택해 주세요.');
+    });
+
+    document.querySelector('#add-form').addEventListener('submit',event => {
+      event.preventDefault();
+
+      const input = document.querySelector('#title');
+      const title = input.value.trim();
+
+      if (!title) {
+        showMessage('영화 제목을 입력해 주세요.');
+        input.focus();
+        return;
+      }
+
+      if (state.items.some(item => item.title === title)) {
+        showMessage('이미 있는 영화 제목이에요. 다른 제목을 넣어 주세요.');
+        return;
+      }
+
+      state.items.push({
+        id: 'm' + state.nextId++,
+        title,
+        tier: 'pool'
+      });
+
+      save();
+      render();
+      input.value = '';
+      showMessage('영화를 추가했어요.');
+      input.focus();
+    });
+
+    document.querySelector('#reset').addEventListener('click',() => {
+      state = initial();
+      selected = null;
+      document.querySelector('#title').value = '';
+      save();
+      render();
+      showMessage('처음 목록으로 돌아왔어요.');
+    });
+
+    render();
+  </script>
+</body>
+</html>
