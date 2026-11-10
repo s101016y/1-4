@@ -1,3 +1,11 @@
+맞아요. 이전 코드는 `confirm()`이라는 **브라우저 기본 확인창**을 쓴 방식이었는데, 실행 환경이나 브라우저 설정에 따라 안 보이거나 눈에 잘 안 띌 수 있어요.
+
+그래서 이번에는 확실하게 보이도록 **HTML 안에 직접 만든 모달 팝업창**으로 바꿨습니다.  
+이제 × 버튼을 누르면 화면 가운데에 **“삭제하시겠습니까?”** 팝업이 뜨고, **삭제**를 눌러야만 카드가 지워집니다.
+
+아래 전체 HTML로 교체해서 사용해 주세요.
+
+```html
 <!doctype html>
 <html lang="ko">
 <head>
@@ -5,28 +13,174 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>내 영화 티어리스트</title>
   <style>
-    :root { --paper:#faf8f3; --ink:#242922; --muted:#5f685d; --line:#d9dad1; --green:#276453; --sage:#e3eee7; --peach:#f2e6dc; }
-    * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:var(--paper); font-family:system-ui,-apple-system,sans-serif; line-height:1.6;  }
-    main { width:min(100% - 32px,860px); margin:32px auto 48px; }
-    header { display:flex; align-items:start; justify-content:space-between; gap:20px; flex-wrap:wrap; }
-    h1 { margin:0; font-size:clamp(26px,5vw,34px); line-height:1.25; letter-spacing:-.03em; }
-    .sub { margin:10px 0 0; color:var(--muted); max-width:46ch; }
-    .tools { display:flex; flex-wrap:wrap; gap:8px; width:100%; margin-top:20px; }
-    .tools input { min-width:0; flex:1 1 160px; border:1.5px solid var(--line); border-radius:12px; padding:11px 12px; font:inherit; }
-    button { font:inherit; cursor:pointer; }
-    .tools button { padding:10px 15px; border:1px solid var(--green); border-radius:12px; font-weight:700; background:var(--green); color:#fff; }
-    .tools .reset { color:var(--green); background:#fff; }
-    #message { min-height:26px; margin:14px 0; font-size:14px; color:var(--muted); }
-    .tiers { display:grid; gap:10px; }
-    .row { display:flex; min-height:90px; background:#fff; border:1.5px solid var(--line); border-radius:14px; overflow:hidden; }
-    .row.over { outline:3px solid var(--green); outline-offset:1px; }
-    .label { width:64px; flex-shrink:0; border:0; color:white; font-size:26px; font-weight:800; padding:12px 4px; }
-    .S .label { background:#a55239; } .A .label { background:#b4763e; } .B .label { background:#276453; } .C .label { background:#67725d; }
-    .drop { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-content:flex-start; gap:9px; padding:12px; min-height:88px; }
-    .pool { margin-top:22px; }
-    .pool-head { margin:0 0 8px; border:0; padding:0; background:transparent; color:var(--muted); font-size:17px; font-weight:700; text-align:left; }
-    #pool { border:1.5px dashed var(--line); border-radius:14px; background:#fff; }
+    :root {
+      --paper:#faf8f3;
+      --ink:#242922;
+      --muted:#5f685d;
+      --line:#d9dad1;
+      --green:#276453;
+      --sage:#e3eee7;
+      --peach:#f2e6dc;
+      --danger:#a55239;
+    }
+
+    * {
+      box-sizing:border-box;
+    }
+
+    body {
+      margin:0;
+      color:var(--ink);
+      background:var(--paper);
+      font-family:system-ui,-apple-system,sans-serif;
+      line-height:1.6;
+    }
+
+    main {
+      width:min(100% - 32px,860px);
+      margin:32px auto 48px;
+    }
+
+    header {
+      display:flex;
+      align-items:start;
+      justify-content:space-between;
+      gap:20px;
+      flex-wrap:wrap;
+    }
+
+    h1 {
+      margin:0;
+      font-size:clamp(26px,5vw,34px);
+      line-height:1.25;
+      letter-spacing:-.03em;
+    }
+
+    .sub {
+      margin:10px 0 0;
+      color:var(--muted);
+      max-width:46ch;
+    }
+
+    .tools {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      width:100%;
+      margin-top:20px;
+    }
+
+    .tools input {
+      min-width:0;
+      flex:1 1 160px;
+      border:1.5px solid var(--line);
+      border-radius:12px;
+      padding:11px 12px;
+      font:inherit;
+    }
+
+    button {
+      font:inherit;
+      cursor:pointer;
+    }
+
+    .tools button {
+      padding:10px 15px;
+      border:1px solid var(--green);
+      border-radius:12px;
+      font-weight:700;
+      background:var(--green);
+      color:#fff;
+    }
+
+    .tools .reset {
+      color:var(--green);
+      background:#fff;
+    }
+
+    #message {
+      min-height:26px;
+      margin:14px 0;
+      font-size:14px;
+      color:var(--muted);
+    }
+
+    .tiers {
+      display:grid;
+      gap:10px;
+    }
+
+    .row {
+      display:flex;
+      min-height:90px;
+      background:#fff;
+      border:1.5px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+    }
+
+    .row.over {
+      outline:3px solid var(--green);
+      outline-offset:1px;
+    }
+
+    .label {
+      width:64px;
+      flex-shrink:0;
+      border:0;
+      color:white;
+      font-size:26px;
+      font-weight:800;
+      padding:12px 4px;
+    }
+
+    .S .label {
+      background:#a55239;
+    }
+
+    .A .label {
+      background:#b4763e;
+    }
+
+    .B .label {
+      background:#276453;
+    }
+
+    .C .label {
+      background:#67725d;
+    }
+
+    .drop {
+      flex:1;
+      min-width:0;
+      display:flex;
+      flex-wrap:wrap;
+      align-content:flex-start;
+      gap:9px;
+      padding:12px;
+      min-height:88px;
+    }
+
+    .pool {
+      margin-top:22px;
+    }
+
+    .pool-head {
+      margin:0 0 8px;
+      border:0;
+      padding:0;
+      background:transparent;
+      color:var(--muted);
+      font-size:17px;
+      font-weight:700;
+      text-align:left;
+    }
+
+    #pool {
+      border:1.5px dashed var(--line);
+      border-radius:14px;
+      background:#fff;
+    }
 
     .card {
       position:relative;
@@ -43,8 +197,15 @@
       cursor:grab;
       text-align:left;
     }
-    .card[aria-pressed="true"] { outline:3px solid var(--green); outline-offset:2px; }
-    .card-title { display:block; }
+
+    .card[aria-pressed="true"] {
+      outline:3px solid var(--green);
+      outline-offset:2px;
+    }
+
+    .card-title {
+      display:block;
+    }
 
     .delete {
       position:absolute;
@@ -62,12 +223,97 @@
       padding:0;
       cursor:pointer;
     }
-    .delete:hover { background:#fff; color:#a55239; }
 
-    .count { display:block; font-size:14px; font-weight:600; }
-    .note { font-size:13px; color:var(--muted); margin-top:18px; }
-    :focus-visible { outline:3px solid #ba613a; outline-offset:3px; }
-    @media(max-width:420px) { .label { width:48px; } .card { width:90px; } .drop { padding:10px; gap:8px; } }
+    .delete:hover {
+      background:#fff;
+      color:var(--danger);
+    }
+
+    .note {
+      font-size:13px;
+      color:var(--muted);
+      margin-top:18px;
+    }
+
+    /* 삭제 확인 모달 */
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:rgba(0,0,0,.35);
+      z-index:9999;
+    }
+
+    .modal-backdrop.open {
+      display:flex;
+    }
+
+    .modal {
+      width:min(100%,360px);
+      background:#fff;
+      border-radius:16px;
+      border:1.5px solid var(--line);
+      box-shadow:0 18px 45px rgba(0,0,0,.22);
+      padding:22px;
+      text-align:center;
+    }
+
+    .modal h2 {
+      margin:0 0 8px;
+      font-size:22px;
+      line-height:1.3;
+    }
+
+    .modal p {
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:15px;
+    }
+
+    .modal-actions {
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+
+    .modal-actions button {
+      border-radius:12px;
+      padding:10px 16px;
+      font-weight:700;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--ink);
+    }
+
+    .modal-actions .danger {
+      border-color:var(--danger);
+      background:var(--danger);
+      color:#fff;
+    }
+
+    :focus-visible {
+      outline:3px solid #ba613a;
+      outline-offset:3px;
+    }
+
+    @media(max-width:420px) {
+      .label {
+        width:48px;
+      }
+
+      .card {
+        width:90px;
+      }
+
+      .drop {
+        padding:10px;
+        gap:8px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -75,7 +321,11 @@
     <header>
       <div>
         <h1>내 영화 티어리스트</h1>
-        <p class="sub">영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요. 카드를 끌어서 놓아도 됩니다. 카드의 × 버튼으로 삭제할 수 있습니다.</p>
+        <p class="sub">
+          영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요.
+          카드를 끌어서 놓아도 됩니다.
+          카드의 × 버튼을 누르면 삭제 확인창이 뜹니다.
+        </p>
       </div>
     </header>
 
@@ -90,12 +340,29 @@
     <section class="tiers" id="tiers" aria-label="영화 등급"></section>
 
     <section class="pool" aria-label="아직 안 정한 영화">
-      <button class="pool-head" id="pool-label" type="button" aria-label="미분류로 옮기기">아직 안 정한 영화</button>
+      <button class="pool-head" id="pool-label" type="button" aria-label="미분류로 옮기기">
+        아직 안 정한 영화
+      </button>
       <div class="drop" id="pool" data-tier="pool"></div>
     </section>
 
-    <p class="note">같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다. 다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.</p>
+    <p class="note">
+      같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다.
+      다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.
+    </p>
   </main>
+
+  <!-- 삭제 확인 팝업 -->
+  <div class="modal-backdrop" id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+    <div class="modal">
+      <h2 id="delete-title">삭제하시겠습니까?</h2>
+      <p id="delete-message">이 영화 카드를 삭제합니다.</p>
+      <div class="modal-actions">
+        <button type="button" id="cancel-delete">취소</button>
+        <button type="button" class="danger" id="confirm-delete">삭제</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const KEY = "codyssey-activity-04-v2";
@@ -114,9 +381,11 @@
 
     let state = initial();
     let selected = null;
+    let pendingDeleteId = null;
 
     try {
       const stored = JSON.parse(localStorage.getItem(KEY) || 'null');
+
       if (
         stored &&
         Number.isSafeInteger(stored.nextId) &&
@@ -139,16 +408,18 @@
       try {
         localStorage.setItem(KEY, JSON.stringify(state));
       } catch {
-        showMessage('이 브라우저에서는 저장하지 못했어요. 현재 화면에서 확인한 내용과 다시 열어 확인한 내용을 구분해 주세요.');
+        showMessage('이 브라우저에서는 저장하지 못했어요.');
       }
     }
 
-    function move(id,tier) {
+    function move(id, tier) {
       const item = state.items.find(item => item.id === id);
+
       if (!item || !LEVELS.includes(tier)) return;
 
       item.tier = tier;
       selected = null;
+
       save();
       render();
       showMessage((item.title || '영화') + '를 옮겼어요.');
@@ -156,6 +427,7 @@
 
     function removeItem(id) {
       const item = state.items.find(item => item.id === id);
+
       if (!item) return;
 
       state.items = state.items.filter(item => item.id !== id);
@@ -169,13 +441,32 @@
       showMessage((item.title || '영화') + '를 삭제했어요.');
     }
 
+    function openDeleteModal(id) {
+      const item = state.items.find(item => item.id === id);
+
+      if (!item) return;
+
+      pendingDeleteId = id;
+
+      document.querySelector('#delete-message').textContent =
+        '"' + item.title + '" 카드를 삭제합니다.';
+
+      document.querySelector('#delete-modal').classList.add('open');
+      document.querySelector('#confirm-delete').focus();
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteId = null;
+      document.querySelector('#delete-modal').classList.remove('open');
+    }
+
     function toggleSelect(item) {
       selected = selected === item.id ? null : item.id;
       render();
       showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
     }
 
-    function card(item,index) {
+    function card(item, index) {
       const element = document.createElement('div');
       element.className = 'card';
       element.draggable = true;
@@ -198,60 +489,52 @@
 
       element.append(title, deleteButton);
 
-      element.addEventListener('click',event => {
+      element.addEventListener('click', event => {
         event.stopPropagation();
         toggleSelect(item);
       });
 
-      element.addEventListener('keydown',event => {
+      element.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           toggleSelect(item);
         }
       });
 
-      element.addEventListener('dragstart',event => {
-        event.dataTransfer.setData('text/plain',item.id);
+      element.addEventListener('dragstart', event => {
+        event.dataTransfer.setData('text/plain', item.id);
       });
 
-      deleteButton.addEventListener('pointerdown',event => {
+      deleteButton.addEventListener('pointerdown', event => {
         event.stopPropagation();
       });
 
-      deleteButton.addEventListener('click',event => {
+      deleteButton.addEventListener('click', event => {
         event.stopPropagation();
-
-        const ok = confirm('삭제하시겠습니까?');
-
-        if (!ok) {
-          showMessage('삭제를 취소했어요.');
-          return;
-        }
-
-        removeItem(item.id);
+        openDeleteModal(item.id);
       });
 
       return element;
     }
 
-    function wireDrop(element,tier) {
-      element.addEventListener('dragover',event => {
+    function wireDrop(element, tier) {
+      element.addEventListener('dragover', event => {
         event.preventDefault();
         element.closest('.row')?.classList.add('over');
       });
 
-      element.addEventListener('dragleave',() => {
+      element.addEventListener('dragleave', () => {
         element.closest('.row')?.classList.remove('over');
       });
 
-      element.addEventListener('drop',event => {
+      element.addEventListener('drop', event => {
         event.preventDefault();
         element.closest('.row')?.classList.remove('over');
-        move(event.dataTransfer.getData('text/plain'),tier);
+        move(event.dataTransfer.getData('text/plain'), tier);
       });
 
       element.onclick = () => {
-        if (selected) move(selected,tier);
+        if (selected) move(selected, tier);
       };
     }
 
@@ -267,10 +550,10 @@
         label.type = 'button';
         label.className = 'label';
         label.textContent = tier;
-        label.setAttribute('aria-label',tier + '등급으로 옮기기');
+        label.setAttribute('aria-label', tier + '등급으로 옮기기');
 
-        label.addEventListener('click',() => {
-          if (selected) move(selected,tier);
+        label.addEventListener('click', () => {
+          if (selected) move(selected, tier);
           else showMessage('먼저 영화 카드를 선택해 주세요.');
         });
 
@@ -279,69 +562,13 @@
         drop.dataset.tier = tier;
 
         state.items.forEach((item,index) => {
-          if (item.tier === tier) drop.append(card(item,index));
+          if (item.tier === tier) {
+            drop.append(card(item,index));
+          }
         });
 
         wireDrop(drop,tier);
+
         row.append(label,drop);
         tiers.append(row);
-      }
-
-      const pool = document.querySelector('#pool');
-      pool.replaceChildren();
-
-      state.items.forEach((item,index) => {
-        if (item.tier === 'pool') pool.append(card(item,index));
-      });
-    }
-
-    wireDrop(document.querySelector('#pool'),'pool');
-
-    document.querySelector('#pool-label').addEventListener('click',() => {
-      if (selected) move(selected,'pool');
-      else showMessage('먼저 영화 카드를 선택해 주세요.');
-    });
-
-    document.querySelector('#add-form').addEventListener('submit',event => {
-      event.preventDefault();
-
-      const input = document.querySelector('#title');
-      const title = input.value.trim();
-
-      if (!title) {
-        showMessage('영화 제목을 입력해 주세요.');
-        input.focus();
-        return;
-      }
-
-      if (state.items.some(item => item.title === title)) {
-        showMessage('이미 있는 영화 제목이에요. 다른 제목을 넣어 주세요.');
-        return;
-      }
-
-      state.items.push({
-        id: 'm' + state.nextId++,
-        title,
-        tier: 'pool'
-      });
-
-      save();
-      render();
-      input.value = '';
-      showMessage('영화를 추가했어요.');
-      input.focus();
-    });
-
-    document.querySelector('#reset').addEventListener('click',() => {
-      state = initial();
-      selected = null;
-      document.querySelector('#title').value = '';
-      save();
-      render();
-      showMessage('처음 목록으로 돌아왔어요.');
-    });
-
-    render();
-  </script>
-</body>
-</html>
+     
